@@ -1,3 +1,4 @@
+import hashlib
 import os
 import shlex
 
@@ -19,6 +20,33 @@ def vfs_name_from_path(path):
     return name
 
 
+def relative_path(full, start):
+    return os.path.relpath(full, start).replace("\\", "/")
+
+
+def load_vfs(path):
+    dirs = []
+    files = {}
+    for root, names, filenames in os.walk(path):
+        for name in names:
+            dirs.append(relative_path(os.path.join(root, name), path))
+        for name in filenames:
+            full = os.path.join(root, name)
+            with open(full, "rb") as data:
+                files[relative_path(full, path)] = data.read()
+    return dirs, files
+
+
+def vfs_hash(dirs, files):
+    digest = hashlib.sha256()
+    for name in sorted(dirs):
+        digest.update(name.encode())
+    for name in sorted(files):
+        digest.update(name.encode())
+        digest.update(files[name])
+    return digest.hexdigest()
+
+
 class Shell:
     def __init__(self, vfs_path="", prompt_text=""):
         self.vfs_path = vfs_path
@@ -26,8 +54,22 @@ class Shell:
         self.prompt_text = prompt_text
         self.running = True
         self.error = False
+        self.vfs_dirs = []
+        self.vfs_files = {}
+        self.vfs_error = ""
         self.commands = {"ls": self.do_ls, "cd": self.do_cd,
-                         "exit": self.do_exit}
+                         "vfs-info": self.do_vfs_info, "exit": self.do_exit}
+        if vfs_path:
+            self.load_vfs(vfs_path)
+
+    def load_vfs(self, path):
+        if not os.path.isdir(path):
+            self.vfs_error = f"vfs error: {path}: no such directory"
+            return
+        try:
+            self.vfs_dirs, self.vfs_files = load_vfs(path)
+        except OSError as err:
+            self.vfs_error = f"vfs error: {err}"
 
     def prompt(self):
         if self.prompt_text:
@@ -57,6 +99,16 @@ class Shell:
         if len(args) > MAX_ARGS:
             return self.fail("cd: too many arguments")
         return f"cd {args}"
+
+    def do_vfs_info(self, args):
+        if args:
+            return self.fail("vfs-info: too many arguments")
+        if not self.vfs_path:
+            return self.fail("vfs-info: vfs is not loaded")
+        if self.vfs_error:
+            return self.fail(self.vfs_error)
+        digest = vfs_hash(self.vfs_dirs, self.vfs_files)
+        return f"name: {self.vfs_name}\nsha256: {digest}"
 
     def do_exit(self, args):
         if len(args) > MAX_ARGS:

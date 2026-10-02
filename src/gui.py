@@ -17,6 +17,8 @@ class App:
         self.entry.bind("<Return>", self.on_enter)
         self.entry.focus()
         self.show_parameters(vfs_path, prompt_text, script_path)
+        if self.shell.vfs_error:
+            self.write(self.shell.vfs_error)
         if script_path:
             self.run_script(script_path)
 

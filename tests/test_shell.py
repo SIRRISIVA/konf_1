@@ -1,6 +1,11 @@
+import os
 import unittest
 
-from shell import Shell, parse, vfs_name_from_path
+from shell import Shell, load_vfs, parse, vfs_hash, vfs_name_from_path
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MIN_VFS = os.path.join(ROOT, "vfs_min")
+DEEP_VFS = os.path.join(ROOT, "vfs_deep")
 
 
 def make_shell(vfs_path="", prompt_text=""):
@@ -85,6 +90,45 @@ class TestParameters(unittest.TestCase):
 
     def test_vfs_name_in_shell(self):
         self.assertEqual(make_shell("C:/data/my_vfs").vfs_name, "my_vfs")
+
+
+class TestVfs(unittest.TestCase):
+    def test_load_min(self):
+        dirs, files = load_vfs(MIN_VFS)
+        self.assertEqual(dirs, [])
+        self.assertEqual(list(files), ["readme.txt"])
+        self.assertIn(b"hello", files["readme.txt"])
+
+    def test_load_deep(self):
+        dirs, files = load_vfs(DEEP_VFS)
+        self.assertIn("docs/work", dirs)
+        self.assertIn("docs/work/reports/year.txt", files)
+
+    def test_hash_is_stable(self):
+        first = vfs_hash(*load_vfs(MIN_VFS))
+        second = vfs_hash(*load_vfs(MIN_VFS))
+        self.assertEqual(first, second)
+
+    def test_hash_differs(self):
+        self.assertNotEqual(vfs_hash(*load_vfs(MIN_VFS)),
+                            vfs_hash(*load_vfs(DEEP_VFS)))
+
+    def test_vfs_info(self):
+        result = make_shell(MIN_VFS).execute("vfs-info")
+        self.assertIn("name: vfs_min", result)
+        self.assertIn("sha256: ", result)
+
+    def test_vfs_info_without_vfs(self):
+        self.assertEqual(make_shell().execute("vfs-info"),
+                         "vfs-info: vfs is not loaded")
+
+    def test_vfs_info_with_args(self):
+        self.assertEqual(make_shell(MIN_VFS).execute("vfs-info extra"),
+                         "vfs-info: too many arguments")
+
+    def test_missing_vfs(self):
+        shell = make_shell("no_such_vfs")
+        self.assertIn("no such directory", shell.vfs_error)
 
 
 if __name__ == "__main__":

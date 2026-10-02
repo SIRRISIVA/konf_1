@@ -29,13 +29,30 @@
 py src\main.py --vfs vfs --prompt "user>" --script scripts\start.vsh
 ```
 
+## Этап 3
+
+VFS загружается из папки на диске в память при запуске. Данные на диске
+не изменяются, эмулятор работает только с копией в памяти.
+
+Команда `vfs-info` выводит имя VFS и хеш SHA-256 ее данных.
+
+Тестовые VFS в репозитории:
+
+- `vfs_min` - минимальная, один файл
+- `vfs_small` - несколько файлов
+- `vfs_deep` - папки и файлы на четырех уровнях
+
+Если папка VFS не найдена, при запуске выводится ошибка.
+
 ## Файлы
 
 - `src/main.py` - разбор параметров и запуск
 - `src/gui.py` - окно и выполнение скрипта
 - `src/shell.py` - парсер и команды
 - `scripts/start.vsh` - стартовый скрипт эмулятора
-- `scripts/test_*.bat` - скрипты ОС для проверки параметров
+- `scripts/stage3.vsh` - стартовый скрипт для проверки всех команд
+- `scripts/test_*.bat` - скрипты ОС для проверки параметров и разных VFS
+- `vfs_min`, `vfs_small`, `vfs_deep` - тестовые VFS
 - `tests/test_shell.py` - тесты
 
 ## Запуск
@@ -53,13 +70,16 @@ python -m unittest discover -s tests -t .
 ## Пример
 
 ```
-user> ls -l "my dir"
+vfs_min:~$ vfs-info
+name: vfs_min
+sha256: 4a5b...
+vfs_min:~$ ls -l "my dir"
 ls ['-l', 'my dir']
-user> cd a b
+vfs_min:~$ cd a b
 cd: too many arguments
-user> ls "abc
+vfs_min:~$ ls "abc
 syntax error: No closing quotation
-user> hello
+vfs_min:~$ hello
 hello: command not found
-user> exit
+vfs_min:~$ exit
 ```
