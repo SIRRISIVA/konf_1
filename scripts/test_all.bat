@@ -1,0 +1,3 @@
+@echo off
+cd /d "%~dp0.."
+py src\main.py --vfs vfs --prompt "user>" --script scripts\start.vsh

@@ -1,3 +1,4 @@
+import os
 import shlex
 
 VFS_NAME = "vfs"
@@ -11,25 +12,42 @@ def parse(line):
     return words[0], words[1:]
 
 
+def vfs_name_from_path(path):
+    name = os.path.basename(path.rstrip("/\\"))
+    if not name:
+        return VFS_NAME
+    return name
+
+
 class Shell:
-    def __init__(self):
-        self.vfs_name = VFS_NAME
+    def __init__(self, vfs_path="", prompt_text=""):
+        self.vfs_path = vfs_path
+        self.vfs_name = vfs_name_from_path(vfs_path)
+        self.prompt_text = prompt_text
         self.running = True
+        self.error = False
         self.commands = {"ls": self.do_ls, "cd": self.do_cd,
                          "exit": self.do_exit}
 
     def prompt(self):
+        if self.prompt_text:
+            return self.prompt_text + " "
         return self.vfs_name + ":~$ "
 
+    def fail(self, message):
+        self.error = True
+        return message
+
     def execute(self, line):
+        self.error = False
         try:
             name, args = parse(line)
         except ValueError as err:
-            return f"syntax error: {err}"
+            return self.fail(f"syntax error: {err}")
         if name is None:
             return ""
         if name not in self.commands:
-            return name + ": command not found"
+            return self.fail(name + ": command not found")
         return self.commands[name](args)
 
     def do_ls(self, args):
@@ -37,13 +55,13 @@ class Shell:
 
     def do_cd(self, args):
         if len(args) > MAX_ARGS:
-            return "cd: too many arguments"
+            return self.fail("cd: too many arguments")
         return f"cd {args}"
 
     def do_exit(self, args):
         if len(args) > MAX_ARGS:
-            return "exit: too many arguments"
+            return self.fail("exit: too many arguments")
         if args and not args[0].isdigit():
-            return f"exit: {args[0]}: numeric argument required"
+            return self.fail(f"exit: {args[0]}: numeric argument required")
         self.running = False
         return ""

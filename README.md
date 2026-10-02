@@ -9,6 +9,35 @@
 - `ls`, `cd` - заглушки, выводят имя и аргументы
 - `exit` - выход
 
+## Этап 2
+
+Параметры командной строки:
+
+- `--vfs` - путь к физическому расположению VFS
+- `--prompt` - приглашение к вводу
+- `--script` - путь к стартовому скрипту
+
+При запуске эмулятор выводит все заданные параметры.
+
+Стартовый скрипт выполняет команды по очереди. Ввод и вывод показываются
+в окне, как при работе пользователя. Ошибочные строки не останавливают
+скрипт: выводится номер строки и текст ошибки.
+
+Пример запуска:
+
+```
+py src\main.py --vfs vfs --prompt "user>" --script scripts\start.vsh
+```
+
+## Файлы
+
+- `src/main.py` - разбор параметров и запуск
+- `src/gui.py` - окно и выполнение скрипта
+- `src/shell.py` - парсер и команды
+- `scripts/start.vsh` - стартовый скрипт эмулятора
+- `scripts/test_*.bat` - скрипты ОС для проверки параметров
+- `tests/test_shell.py` - тесты
+
 ## Запуск
 
 ```
@@ -24,13 +53,13 @@ python -m unittest discover -s tests -t .
 ## Пример
 
 ```
-vfs:~$ ls -l "my dir"
+user> ls -l "my dir"
 ls ['-l', 'my dir']
-vfs:~$ cd a b
+user> cd a b
 cd: too many arguments
-vfs:~$ exit abc
-exit: abc: numeric argument required
-vfs:~$ hello
+user> ls "abc
+syntax error: No closing quotation
+user> hello
 hello: command not found
-vfs:~$ exit
+user> exit
 ```
