@@ -64,7 +64,7 @@ run.bat
 ## Тесты
 
 ```
-python -m unittest discover -s tests -t .
+py -m unittest discover -s tests -t .
 ```
 
 ## Пример
