@@ -1,4 +1,6 @@
 vfs-info
+clear extra
+clear
 ls
 ls docs
 ls -a docs
@@ -18,7 +20,4 @@ date +%Y-%m-%d
 date -u
 date -x
 date 1 2
-clear extra
-clear
 exit abc
-exit

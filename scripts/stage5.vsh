@@ -1,4 +1,6 @@
 vfs-info
+clear extra
+clear
 ls
 mkdir my_dir
 ls
@@ -12,6 +14,4 @@ cd docs
 rmdir .
 cd ..
 date
-clear extra
-clear
-exit
+exit abc
