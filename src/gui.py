@@ -38,6 +38,12 @@ class App:
     def run_line(self, line, number=0):
         self.write(self.shell.prompt() + line)
         result = self.shell.execute(line)
+        if self.shell.clear_screen:
+            self.output.configure(state="normal")
+            self.output.delete("1.0", tk.END)
+            self.output.configure(state="disabled")
+            self.shell.clear_screen = False
+            return
         if result and self.shell.error and number:
             result = f"line {number}: {result}"
         if result:

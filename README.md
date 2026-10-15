@@ -44,14 +44,29 @@ VFS загружается из папки на диске в память пр�
 
 Если папка VFS не найдена, при запуске выводится ошибка.
 
+## Этап 4
+
+Реализованы основные команды UNIX:
+
+- `ls` - просмотр содержимого директории или файла (поддерживаются флаги `-l`, `-a` и относительные/абсолютные пути)
+- `cd` - смена текущей директории в VFS (`..`, `/`, `~`, относительные и абсолютные пути)
+- `clear` - очистка окна терминала
+- `date` - отображение текущей даты и времени (поддерживаются форматы `+...` и флаг `-u`)
+
+Тестирование этапа 4:
+- Стартовый скрипт: `scripts/stage4.vsh`
+- Скрипт ОС: `scripts/test_stage4.bat`
+
 ## Файлы
 
 - `src/main.py` - разбор параметров и запуск
 - `src/gui.py` - окно и выполнение скрипта
 - `src/shell.py` - парсер и команды
 - `scripts/start.vsh` - стартовый скрипт эмулятора
-- `scripts/stage3.vsh` - стартовый скрипт для проверки всех команд
+- `scripts/stage3.vsh` - стартовый скрипт этапа 3
+- `scripts/stage4.vsh` - стартовый скрипт этапа 4
 - `scripts/test_*.bat` - скрипты ОС для проверки параметров и разных VFS
+- `scripts/test_stage4.bat` - скрипт ОС для этапа 4
 - `vfs_min`, `vfs_small`, `vfs_deep` - тестовые VFS
 - `tests/test_shell.py` - тесты
 
@@ -67,19 +82,28 @@ run.bat
 py -m unittest discover -s tests -t .
 ```
 
+или
+
+```
+py tests/test_shell.py
+```
+
+Каждый тест выводит входные данные и полученный результат.
+
 ## Пример
 
 ```
-vfs_min:~$ vfs-info
-name: vfs_min
-sha256: 4a5b...
-vfs_min:~$ ls -l "my dir"
-ls ['-l', 'my dir']
-vfs_min:~$ cd a b
-cd: too many arguments
-vfs_min:~$ ls "abc
-syntax error: No closing quotation
-vfs_min:~$ hello
-hello: command not found
-vfs_min:~$ exit
+vfs_deep:~$ ls
+docs
+etc
+readme.txt
+vfs_deep:~$ cd docs
+vfs_deep:~$ ls
+notes.txt
+work
+vfs_deep:~$ date +%Y-%m-%d
+2026-10-15
+vfs_deep:~$ cd ..
+vfs_deep:~$ clear
+vfs_deep:~$ exit
 ```
