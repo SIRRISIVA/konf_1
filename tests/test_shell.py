@@ -225,6 +225,66 @@ class TestCommands(BaseTest):
         self.assertTrue(shell.error)
 
 
+class TestRmdir(BaseTest):
+    def test_rmdir_missing_operand(self):
+        shell = make_shell(DEEP_VFS)
+        res = self.run_cmd(shell, "rmdir")
+        self.assertEqual(res, "rmdir: missing operand")
+        self.assertTrue(shell.error)
+
+    def test_rmdir_not_empty(self):
+        shell = make_shell(DEEP_VFS)
+        res = self.run_cmd(shell, "rmdir docs")
+        self.assertEqual(
+            res, "rmdir: failed to remove 'docs': Directory not empty"
+        )
+        self.assertTrue(shell.error)
+
+    def test_rmdir_not_found(self):
+        shell = make_shell(DEEP_VFS)
+        res = self.run_cmd(shell, "rmdir nonexistent")
+        self.assertEqual(
+            res,
+            "rmdir: failed to remove 'nonexistent': "
+            "No such file or directory",
+        )
+        self.assertTrue(shell.error)
+
+    def test_rmdir_not_a_directory(self):
+        shell = make_shell(DEEP_VFS)
+        res = self.run_cmd(shell, "rmdir readme.txt")
+        self.assertEqual(
+            res, "rmdir: failed to remove 'readme.txt': Not a directory"
+        )
+        self.assertTrue(shell.error)
+
+    def test_rmdir_current_dir(self):
+        shell = make_shell(DEEP_VFS)
+        self.run_cmd(shell, "cd docs")
+        res = self.run_cmd(shell, "rmdir .")
+        self.assertEqual(
+            res, "rmdir: failed to remove '.': Invalid argument"
+        )
+        self.assertTrue(shell.error)
+
+    def test_rmdir_success(self):
+        shell = make_shell(DEEP_VFS)
+        self.run_cmd(shell, "mkdir empty_folder")
+        self.assertIn("empty_folder", shell.execute("ls"))
+        res = self.run_cmd(shell, "rmdir empty_folder")
+        self.assertEqual(res, "")
+        self.assertFalse(shell.error)
+        self.assertNotIn("empty_folder", shell.execute("ls"))
+
+    def test_rmdir_in_memory_only(self):
+        shell = make_shell(DEEP_VFS)
+        initial_hash = vfs_hash(*load_vfs(DEEP_VFS))
+        self.run_cmd(shell, "mkdir temp_dir")
+        self.run_cmd(shell, "rmdir temp_dir")
+        disk_hash = vfs_hash(*load_vfs(DEEP_VFS))
+        self.assertEqual(initial_hash, disk_hash)
+
+
 class TestParameters(BaseTest):
     def test_default_prompt(self):
         prompt = make_shell().prompt()

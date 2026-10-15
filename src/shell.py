@@ -93,6 +93,8 @@ class Shell:
             "cd": self.do_cd,
             "clear": self.do_clear,
             "date": self.do_date,
+            "mkdir": self.do_mkdir,
+            "rmdir": self.do_rmdir,
             "vfs-info": self.do_vfs_info,
             "exit": self.do_exit,
         }
@@ -243,6 +245,60 @@ class Shell:
                 "%a %b %d %H:%M:%S UTC %Y"
             )
         return self.fail(f"date: invalid option -- '{arg}'")
+
+    def do_mkdir(self, args):
+        """Create new directory/directories in memory VFS."""
+        if not args:
+            return self.fail("mkdir: missing operand")
+        for arg in args:
+            if arg.startswith("-"):
+                continue
+            target = resolve_path(self.cwd, arg)
+            if self.is_dir(target) or self.is_file(target):
+                return self.fail(
+                    f"mkdir: cannot create directory '{arg}': File exists"
+                )
+            parent = resolve_path(target, "..")
+            if parent and not self.is_dir(parent):
+                return self.fail(
+                    f"mkdir: cannot create directory '{arg}': "
+                    "No such file or directory"
+                )
+            self.vfs_dirs.append(target)
+        return ""
+
+    def do_rmdir(self, args):
+        """Remove empty directory/directories from in-memory VFS."""
+        if not args:
+            return self.fail("rmdir: missing operand")
+        for arg in args:
+            if arg.startswith("-"):
+                continue
+            target = resolve_path(self.cwd, arg)
+            if not target:
+                return self.fail(
+                    f"rmdir: failed to remove '{arg}': Invalid argument"
+                )
+            if self.is_file(target):
+                return self.fail(
+                    f"rmdir: failed to remove '{arg}': Not a directory"
+                )
+            if not self.is_dir(target):
+                return self.fail(
+                    f"rmdir: failed to remove '{arg}': "
+                    "No such file or directory"
+                )
+            if target == self.cwd or self.cwd.startswith(f"{target}/"):
+                return self.fail(
+                    f"rmdir: failed to remove '{arg}': Invalid argument"
+                )
+            entries = self.list_dir_entries(target)
+            if entries:
+                return self.fail(
+                    f"rmdir: failed to remove '{arg}': Directory not empty"
+                )
+            self.vfs_dirs.remove(target)
+        return ""
 
     def do_vfs_info(self, args):
         """Display VFS name and SHA-256 digest."""

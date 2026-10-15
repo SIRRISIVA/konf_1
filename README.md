@@ -57,6 +57,16 @@ VFS загружается из папки на диске в память пр�
 - Стартовый скрипт: `scripts/stage4.vsh`
 - Скрипт ОС: `scripts/test_stage4.bat`
 
+## Этап 5
+
+Реализованы дополнительные команды модификации VFS в памяти:
+
+- `rmdir` - удаление пустых директорий из памяти VFS (с проверками на существование, тип файла, непустоту и запрет удаления текущей директории)
+
+Тестирование этапа 5:
+- Стартовый скрипт: `scripts/stage5.vsh`
+- Скрипт ОС: `scripts/test_stage5.bat`
+
 ## Файлы
 
 - `src/main.py` - разбор параметров и запуск
@@ -65,8 +75,10 @@ VFS загружается из папки на диске в память пр�
 - `scripts/start.vsh` - стартовый скрипт эмулятора
 - `scripts/stage3.vsh` - стартовый скрипт этапа 3
 - `scripts/stage4.vsh` - стартовый скрипт этапа 4
+- `scripts/stage5.vsh` - стартовый скрипт этапа 5
 - `scripts/test_*.bat` - скрипты ОС для проверки параметров и разных VFS
 - `scripts/test_stage4.bat` - скрипт ОС для этапа 4
+- `scripts/test_stage5.bat` - скрипт ОС для этапа 5
 - `vfs_min`, `vfs_small`, `vfs_deep` - тестовые VFS
 - `tests/test_shell.py` - тесты
 
@@ -88,7 +100,7 @@ py -m unittest discover -s tests -t .
 py tests/test_shell.py
 ```
 
-Каждый тест выводит входные данные и полученный результат.
+Каждый тест запускается и наглядно выводит входные данные и полученный результат.
 
 ## Пример
 
@@ -97,13 +109,21 @@ vfs_deep:~$ ls
 docs
 etc
 readme.txt
-vfs_deep:~$ cd docs
+vfs_deep:~$ mkdir test_dir
 vfs_deep:~$ ls
-notes.txt
-work
+docs
+etc
+readme.txt
+test_dir
+vfs_deep:~$ rmdir test_dir
+vfs_deep:~$ ls
+docs
+etc
+readme.txt
+vfs_deep:~$ rmdir docs
+rmdir: failed to remove 'docs': Directory not empty
 vfs_deep:~$ date +%Y-%m-%d
 2026-10-15
-vfs_deep:~$ cd ..
 vfs_deep:~$ clear
 vfs_deep:~$ exit
 ```
